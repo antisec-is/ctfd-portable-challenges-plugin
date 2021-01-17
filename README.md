@@ -1,6 +1,8 @@
-# Portable Challenges Plugin
+# Portabler Challenges Plugin
 
-This plugin provides the ability to import and export challenges in a portable, human-readable format (currently YAML, with JSON if there is popular demand). 
+This is a fork of the [Portable Challenges Plugin](https://github.com/tamuctf/ctfd-portable-challenges-plugin)
+
+This plugin provides the ability to import and export challenges in a portable, human-readable format (currently YAML, with JSON if there is popular demand).
 
 ### Objectives:
 * Allow challenges to be saved outside of the database
@@ -15,7 +17,7 @@ Simple clone this repository into the plugins folder of your CTFd deployment and
 You can use this plugin through the web API with a front-end at the '/admin/transfer' endpoint, or through the CLI
 
 #### Web endpoints:
-There are two endpoints which are associated with this plugin. 
+There are two endpoints which are associated with this plugin.
 
 * '/admin/yaml': This is where the file transfer takes place. It supports two methods.
   * `GET`: Will send, as an attachment, a compressed tarball archive containing all of the currently configured challenges and their files
@@ -63,30 +65,37 @@ optional arguments:
 ```
 
 #### YAML Specification:
-Each challenge is a single document. Multiple documents can be present in one YAML file, separated by “---”, as specified by YAML 1.1. 
- 
+Each challenge is a single document. Multiple documents can be present in one YAML file, separated by “---”, as specified by YAML 1.1.
+
 Following is a list of top level keys with their usage.
 
 **name**
 * Type: Single line text
-* Usage: Specify the title which will appear to the user at the top of the challenge and on the challenge page
+* Usage: Specify the title which will appear to the user at the top of the
+  challenge and on the challenge page. This is considered to be the challenge's
+  unique identifier. No two challenges should have the same name.
+
+**old_name**
+* Type: Single line text
+* Usage: When renaming a challenge, the old name should be specified with this
+  keyword (to prevent a new challenge from being created).
 
 **category**
 * Type: Single line text
-* Usage: Specify the category the challenge will appear a part of
+* Usage: Specify the category the challenge will appear a part of.
 
 **description**
 * Type: Multiline text
-* Usage: The the body text of the challenge. If HTML tags are used, they will be rendered.
+* Usage: The body text of the challenge. Can be markdown or HTML.
+
+**value**
+* Type: Positive integer
+* Usage: The amount of point awarded for completion of the problem
 
 **tags** (optional)
 * Type: List of single line text items
 * Usage: Specify searchable tags that indicate attributes of this challenge
 * Default: Empty list
-
-**value** 
-* Type: Positive integer
-* Usage: The amount of point awarded for completion of the problem
 
 **type** (optional)
 * Type: Single line text (standard | dynamic)
@@ -106,24 +115,31 @@ Following is a list of top level keys with their usage.
 
 **files** (optional)
 * Type: List of file paths (single line text)
-* Usage: Specify paths to static files which should be included in challenge. On import these files will be uploaded. The filenames will remain the same on upload put the directories in the path will be replaced with a single directory with a random hexadecimal name. The file paths should be relative to the YAML file by default, but this can be changed by using command line arguments with the import tool.
+* Usage: Specify paths to static files which should be included in challenge. On import these files will be uploaded. The filenames will remain the same on upload put the directories in the path will be replaced with a single directory with a random hexadecimal name. The file paths should be relative to the YAML file.
 * Default: Empty list
 
 **flags**
-* Type: List of flag objects
-  
+* Type: List of flag objects or single line string
+* Usage: If a single line string is specified, it will be treated as a single
+  item list with the specified string as the flag text.
+
   **flag**
   * Type: Single line text
   * Usage: The flag/key text
 
   **type** (optional)
-  * Type: Enum {REGEX, PLAINTEXT}
+  * Type: Enum {regex, static}
   * Usage: Specify whether the text should be compared to what the user enters directly, or as a regular expression
-  * Default: PLAINTEXT
+  * Default: static
+
+  **case_insensitive** (optional)
+  * Type: Boolean
+  * Usage: Specify whether the flag content should be compared to the user's input in a case insensitive manner.
+  * Default: false
 
 **hints** (optional)
 * Type: List of hint objects
-  
+
   **hint**
   * Type: Single line text
   * Usage: The hint text
@@ -132,7 +148,7 @@ Following is a list of top level keys with their usage.
   * Type: Enum {REGEX, STANDARD}
   * Usage: Specify whether the text should be compared to what the user enters directly, or as a regular expression
   * Default: STANDARD
-  
+
   **cost** (optional)
   * Type: Positive integer
   * Usage: The amount of point needed for revealing the hint
@@ -153,24 +169,24 @@ description: Aenean nulla dolor, imperdiet id massa eu, iaculis mattis urna. Nul
   lorem non tristique placerat. Lorem ipsum dolor sit amet, consectetur adipiscing
   elit.
 files:
-- export.d/8f227f1c7f305b3fcd39cc06d54a7e36/bfn1o8t5s6dy.gif
-- export.d/4ab77d38dd646bb81e8d6d2533eec71c/bPXFXW7.mp4
+    - export.d/8f227f1c7f305b3fcd39cc06d54a7e36/bfn1o8t5s6dy.gif
+    - export.d/4ab77d38dd646bb81e8d6d2533eec71c/bPXFXW7.mp4
 flags:
-- flag: pharetra
+    - flag: pharetra
 name: Duis
 value: 10
 hints:
-- hint: 'Hint: Buda huba cupa? nulla musca'
-  type: standard
-  cost: 2
+    - hint: 'Hint: Buda huba cupa? nulla musca'
+      type: standard
+      cost: 2
 ---
 category: netus
 description: Duis nibh elit, ultricies non erat non, vulputate vestibulum risus. Nullam
   posuere ac nisi vitae lobortis. Vivamus convallis dictum nunc sed cursus.
 files:
-- export.d/1e9f731e310179959337a26307356513/LYVIZ4x.mp4
+    - export.d/1e9f731e310179959337a26307356513/LYVIZ4x.mp4
 flags:
-- flag: ante
+    - flag: ante
 hidden: true
 name: Integer
 value: 30
@@ -187,9 +203,8 @@ description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pel
   rhoncus turpis quam at odio. Nam pharetra faucibus augue a rhoncus. In hac habitasse
   platea dictumst.
 files:
-- export.d/479922c8a73612596ba64c681aa8a022/21KNq7T.mp4
-flags:
-- flag: orci
+    - export.d/479922c8a73612596ba64c681aa8a022/21KNq7T.mp4
+flags: orci
 name: suscipit nisi eget
 value: 40
 ---
@@ -197,13 +212,13 @@ category: tristique
 description: Praesent ullamcorper orci condimentum sapien tincidunt lacinia. Pellentesque
   habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas.
 files:
-- export.d/8d25765f0902bfc03634e2f578e75e16/ES5hMrK.mp4
-- export.d/6a1586bced5fbed05ec64392dca6b0f1/fAiFGB3.mp4
+    - export.d/8d25765f0902bfc03634e2f578e75e16/ES5hMrK.mp4
+    - export.d/6a1586bced5fbed05ec64392dca6b0f1/fAiFGB3.mp4
 flags:
-- flag: '[eaEA]gesta(s)+'
-- flag: habitant
-- flag: turpis
-- flag: nisi
+    - flag: '[eaEA]gesta(s)+'
+    - flag: habitant
+    - flag: turpis
+    - flag: nisi
 name: Pellentesque
 value: 40
 type: standard
@@ -211,9 +226,9 @@ type: standard
 category: Test
 description: Tset
 files:
-- export.d/ad752f7af75045c1e6735148af09075f/bridge-up.sh
+    - export.d/ad752f7af75045c1e6735148af09075f/bridge-up.sh
 flags:
-- flag: key
+    - flag: key
 name: Test
 value: 50
 ---
@@ -229,11 +244,11 @@ flags:
 name: Cras
 value: 90
 ```
-### Development 
+### Development
 
-You can test the plugin with the latest CTFd using Docker Compose. 
+You can test the plugin with the latest CTFd using Docker Compose.
 
-The CTFd version can be modified in the `Dockerfile`. 
+The CTFd version can be modified in the `Dockerfile`.
 
 ```angular2html
 FROM ctfd/ctfd:mark-3.2.0
@@ -245,5 +260,5 @@ Run the following command from the source repository to start CTFd with the plug
 docker-compose up
 ```
 
-Now you can edit the source code, and the changes will be reflected in the container.  
-Have you found a bug? It should be easy to fix it and to submit a pull request! 
+Now you can edit the source code, and the changes will be reflected in the container.
+Have you found a bug? It should be easy to fix it and to submit a pull request!

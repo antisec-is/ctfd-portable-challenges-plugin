@@ -9,6 +9,7 @@ import tarfile
 import gzip
 import os
 import shutil
+import json
 
 
 def load(app):
@@ -24,7 +25,7 @@ def load(app):
             yamlfile = TemporaryFile(mode='wb+')
             tarball = tarfile.open(fileobj=tarfile_backend, mode='w')
 
-            yamlfile.write(bytes(export_challenges('export.yaml', 'export.d', upload_folder, tarball), "UTF-8"))
+            yamlfile.write(bytes(export_challenges('export.yaml', 'export.d', upload_folder, tarball, False), "UTF-8"))
 
             tarinfo = tarfile.TarInfo('export.yaml')
             tarinfo.size = yamlfile.tell()
@@ -59,38 +60,15 @@ def load(app):
             tempdir = mkdtemp()
             try:
                 archive = tarfile.open(fileobj=file.stream, mode=readmode)
-
-                if 'export.yaml' not in archive.getnames():
-                    shutil.rmtree(tempdir)
-                    abort(400)
-
-                # Check for attempts to escape to higher dirs
-                for member in archive.getmembers():
-                    memberpath = os.path.normpath(member.name)
-                    if memberpath.startswith('/') or '..' in memberpath.split('/'):
-                        shutil.rmtree(tempdir)
-                        abort(400)
-
-                    if member.linkname:
-                        linkpath = os.path.normpath(member.linkname)
-                        if linkpath.startswith('/') or '..' in linkpath.split('/'):
-                            shutil.rmtree(tempdir)
-                            abort(400)
-
-
                 archive.extractall(path=tempdir)
-
+                events = import_challenges(tempdir, upload_folder, move=True)
             except tarfile.TarError:
-                shutil.rmtree(tempdir)
                 print('b')
                 abort(400)
+            finally:
+                shutil.rmtree(tempdir)
 
-            in_file = os.path.join(tempdir, 'export.yaml')
-            import_challenges(in_file, upload_folder, move=True)
-
-            shutil.rmtree(tempdir)
-
-            return '1'
+            return json.dumps({'log': [{'msg': e.msg, 'type': e.type} for e in events]})
 
     @portable.route('/admin/transfer', methods=['GET'])
     @admins_only

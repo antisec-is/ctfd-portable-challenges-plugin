@@ -1,6 +1,24 @@
 {% extends "admin/base.html" %}
 
 {% block content %}
+
+<style>
+.log-info {
+  color: green;
+}
+.log-warn {
+  color: DarkOrange;
+}
+.log-error {
+  color: red;
+}
+.log-fatal {
+  color: Maroon;
+}
+
+
+</style>
+
 <div class="jumbotron">
 	<div class="container">
 		<h1>Challenge Transfer</h1>
@@ -31,16 +49,36 @@
         <div id="user-import-error" class="alert alert-danger" role="alert"><strong>Error:</strong> Challenge archive improperly formatted</div>
         <div id="unknown-import-error" class="alert alert-danger" role="alert"><strong>Error:</strong> Upload failed for unknown reason</div>
     </div>
+    <div id="event-log">
+      <h1>Event log</h1>
+      <pre id="event-log-content">
+      </pre>
+    </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
     <script>
+
+    function handleLog(data) {
+      let res = $.parseJSON(data);
+      if (res.log) {
+        let log = $("#event-log-content");
+        log.empty();
+        res.log.forEach(e => {
+          log.append(
+            `<div class="log-${e.type}"></div>`
+          );
+          log.children().last().text(`[${e.type}] ${e.msg}`);
+        });
+      }
+    }
     window.addEventListener('DOMContentLoaded', function() {
         $("#import-loading").hide()
         $("#import-success").hide()
         $("#user-import-error").hide()
         $("#unknown-import-error").hide()
+        $("#event-log").hide()
 
         $("#import-challenges").click( function(e) {
             $("#import-loading").show();
@@ -60,11 +98,13 @@
                 contentType: false,
                 processData: false,
                 success: function(data){
+                    $("#event-log").show()
                     form.reset();
                     $("#import-loading").hide();
                     $("#import-success").show();
                     $("#import-challenges").removeClass("disabled");
                     $("#import-challenges").css("point-events", "auto");
+                    handleLog(data);
                 },
                 error: function(resp){
                     $("#import-loading").hide();
