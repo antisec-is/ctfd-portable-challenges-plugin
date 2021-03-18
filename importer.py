@@ -319,7 +319,7 @@ def import_challenges(in_dir, dst_attachments, exit_on_error=True, move=False):
             events.append(Event(Event.Type.info,
                 f"Creating new challenge {name}"))
             if chal.get('type') == 'dynamic':
-                chal_dbobj = DynamicChallenge()
+                chal_dbobj = DynamicChallenge(value=value)
             else:
                 chal_dbobj = Challenges()
         # No challenge found with specified name, this is a new challenge
