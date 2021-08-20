@@ -13,7 +13,6 @@ import secrets
 import sys
 import hashlib
 import argparse
-import json
 from pathlib import Path
 
 REQ_FIELDS = {'name', 'description', 'value', 'category', 'flags'}
@@ -335,6 +334,7 @@ def import_challenges(in_dir, dst_attachments, exit_on_error=True, move=False):
         chal_dbobj.description=description
         chal_dbobj.value=value
         chal_dbobj.category=category
+        chal_dbobj.connection_info = chal.get('connection_info')
         chal_dbobj.state = 'hidden' if chal.get('hidden') else 'visible'
         chal_dbobj.type = chal.get('type', 'standard')
 
