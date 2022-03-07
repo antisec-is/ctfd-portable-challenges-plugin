@@ -318,7 +318,7 @@ def import_challenges(in_dir, dst_attachments, exit_on_error=True, move=False):
             events.append(Event(Event.Type.info,
                 f"Creating new challenge {name}"))
             if chal.get('type') == 'dynamic':
-                chal_dbobj = DynamicChallenge(value=value)
+                chal_dbobj = DynamicChallenge(initial=value)
             else:
                 chal_dbobj = Challenges()
         # No challenge found with specified name, this is a new challenge
@@ -341,7 +341,7 @@ def import_challenges(in_dir, dst_attachments, exit_on_error=True, move=False):
         requirements.append( (chal_dbobj,  chal.get('requires', [])) )
 
         if chal_dbobj.type == 'dynamic':
-            chal_dbobj.initial=int(chal.get('initial', value))
+            chal_dbobj.initial=int(chal.get('value', value))
             chal_dbobj.decay=int(chal.get('decay', 0))
             chal_dbobj.minimum=int(chal.get('minimum', 0))
 
