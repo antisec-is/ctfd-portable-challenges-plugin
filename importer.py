@@ -271,7 +271,7 @@ def update_files(files, chal_dbobj, dst_attachments):
 
 def import_challenges(in_dir, dst_attachments, exit_on_error=True, move=False):
     from CTFd.models import db, Challenges
-    from CTFd.plugins.dynamic_challenges import DynamicChallenge
+    from CTFd.plugins.dynamic_challenges import DynamicChallenge, DynamicValueChallenge
 
     in_dir = Path(in_dir).resolve()
 
@@ -344,6 +344,7 @@ def import_challenges(in_dir, dst_attachments, exit_on_error=True, move=False):
             chal_dbobj.initial=int(chal.get('value', value))
             chal_dbobj.decay=int(chal.get('decay', 0))
             chal_dbobj.minimum=int(chal.get('minimum', 0))
+            DynamicValueChallenge.calculate_value(chal_dbobj)
 
 
         db.session.add(chal_dbobj)
